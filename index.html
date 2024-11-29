@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Autumn Documentation Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    <style>
+        body {
+            margin: 0;
+            padding-top: 50px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background-color: #f4f4f9;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .controls {
+            margin-top: 10px;
+        }
+
+        .button {
+            padding: 10px 20px;
+            font-size: 16px;
+            margin: 5px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007BFF;
+            color: white;
+        }
+
+        .button:hover {
+            background-color: #0056b3;
+        }
+
+        .pdf-container {
+            margin-top: 20px;
+            width: 90%;
+            height: 80%;
+            overflow-y: auto;
+            border: 2px solid #ddd;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+            background-color: white;
+        }
+
+        .page {
+            display: block;
+            margin: 20px auto;
+            width: 100%;
+            max-width: 600px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    </style>
+</head>
+<body>
+    <div class="controls">
+        <a href="https://raw.githubusercontent.com/dartsolarpunk/AutumnDoc/main/Autumn.pdf" class="button" download>Download PDF</a>
+    </div>
+    <div class="pdf-container" id="pdf-container"></div>
+
+    <script>
+        // URL of the PDF
+        const url = 'https://raw.githubusercontent.com/dartsolarpunk/AutumnDoc/main/Autumn.pdf';
+
+        // Ensure PDF.js Worker is set correctly
+        const pdfjsLib = window['pdfjs-dist/build/pdf'];
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+
+        const pdfContainer = document.getElementById('pdf-container');
+
+        // Function to render a single page
+        const renderPage = (pdfDoc, pageNum) => {
+            pdfDoc.getPage(pageNum).then(page => {
+                const canvas = document.createElement('canvas');
+                canvas.className = 'page';
+                pdfContainer.appendChild(canvas);
+
+                const viewport = page.getViewport({ scale: 1.5 });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const ctx = canvas.getContext('2d');
+                const renderContext = {
+                    canvasContext: ctx,
+                    viewport: viewport,
+                };
+                page.render(renderContext);
+            });
+        };
+
+        // Render all pages of the PDF
+        const renderAllPages = (pdfDoc) => {
+            for (let pageNum = 1; pageNum <= pdfDoc.numPages; pageNum++) {
+                renderPage(pdfDoc, pageNum);
+            }
+        };
+
+        // Load the PDF
+        pdfjsLib.getDocument(url).promise
+            .then(pdfDoc => {
+                renderAllPages(pdfDoc);
+            })
+            .catch(err => {
+                console.error('Error loading PDF:', err);
+            });
+    </script>
+</body>
+</html>
